@@ -49,7 +49,7 @@ func main() {
 
 	// Find and visit all links
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		e.Request.Visit(e.Attr("href"))
+		q.AddURL(e.Request.AbsoluteURL(e.Attr("href")))
 	})
 
 	c.OnResponse(func(r *colly.Response) {
