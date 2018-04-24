@@ -13,8 +13,8 @@ import (
 
 )
 
-// Sqlite3Storage implements a SQLite3 storage backend for Colly
-type Sqlite3Storage struct {
+// Storage implements a SQLite3 storage backend for Colly
+type Storage struct {
 	// Filename indicates the name of the sqlite file to use
 	Filename string
 	// handle to the db
@@ -23,7 +23,7 @@ type Sqlite3Storage struct {
 }
 
 // Init initializes the sqlite3 storage
-func (s *Sqlite3Storage) Init() error {
+func (s *Storage) Init() error {
 
 	if s.dbh == nil {
 		db, err := sql.Open("sqlite3", s.Filename)
@@ -67,7 +67,7 @@ func (s *Sqlite3Storage) Init() error {
 }
 
 // Clear removes all entries from the storage
-func (s *Sqlite3Storage) Clear() error {
+func (s *Storage) Clear() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -100,13 +100,13 @@ func (s *Sqlite3Storage) Clear() error {
 }
 
 //Close the db
-func (s *Sqlite3Storage) Close() error {
+func (s *Storage) Close() error {
 	err := s.dbh.Close()
 	return err
 }
 
 // Visited implements colly/storage.Visited()
-func (s *Sqlite3Storage) Visited(requestID uint64) error {
+func (s *Storage) Visited(requestID uint64) error {
 	statement, err := s.dbh.Prepare("INSERT INTO visited (requestID, visited) VALUES (?, 1)")
 	if err != nil {
 		return err
@@ -119,7 +119,7 @@ func (s *Sqlite3Storage) Visited(requestID uint64) error {
 }
 
 // IsVisited implements colly/storage.IsVisited()
-func (s *Sqlite3Storage) IsVisited(requestID uint64) (bool, error) {
+func (s *Storage) IsVisited(requestID uint64) (bool, error) {
 	var count int
 	statement, err := s.dbh.Prepare("SELECT COUNT(*) FROM visited where requestId = ?")
 	if err != nil {
@@ -137,7 +137,7 @@ func (s *Sqlite3Storage) IsVisited(requestID uint64) (bool, error) {
 }
 
 // SetCookies implements colly/storage..SetCookies()
-func (s *Sqlite3Storage) SetCookies(u *url.URL, cookies string) {
+func (s *Storage) SetCookies(u *url.URL, cookies string) {
 	// TODO Cookie methods currently have no way to return an error.
 
 	// We need to use a write lock to prevent a race in the db:
@@ -159,7 +159,7 @@ func (s *Sqlite3Storage) SetCookies(u *url.URL, cookies string) {
 }
 
 // Cookies implements colly/storage.Cookies()
-func (s *Sqlite3Storage) Cookies(u *url.URL) string {
+func (s *Storage) Cookies(u *url.URL) string {
 	// TODO Cookie methods currently have no way to return an error.
 	var cookies string
 	s.mu.RLock()
@@ -184,7 +184,7 @@ func (s *Sqlite3Storage) Cookies(u *url.URL) string {
 }
 
 // AddRequest implements queue.Storage.AddRequest() function
-func (s *Sqlite3Storage) AddRequest(r []byte) error {
+func (s *Storage) AddRequest(r []byte) error {
 	//return s.Client.RPush(s.getQueueID(), r).Err()
 	statement, err := s.dbh.Prepare("INSERT INTO queue (data) VALUES (?)")
 	if err != nil {
@@ -198,7 +198,7 @@ func (s *Sqlite3Storage) AddRequest(r []byte) error {
 }
 
 // GetRequest implements queue.Storage.GetRequest() function
-func (s *Sqlite3Storage) GetRequest() ([]byte, error) {
+func (s *Storage) GetRequest() ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	var blob []byte
@@ -223,7 +223,7 @@ func (s *Sqlite3Storage) GetRequest() ([]byte, error) {
 }
 
 // QueueSize implements queue.Storage.QueueSize() function
-func (s *Sqlite3Storage) QueueSize() (int, error) {
+func (s *Storage) QueueSize() (int, error) {
 	var count int
 	statement, err := s.dbh.Prepare("SELECT COUNT(*) FROM queue")
 	if err != nil {

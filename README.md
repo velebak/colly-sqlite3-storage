@@ -27,7 +27,7 @@ func main() {
 		//colly.Debugger(&debug.LogDebugger{}),
 	)
 
-	storage := &sqlite3.Sqlite3Storage{
+	storage := &sqlite3.Storage{
 		Filename: "./results.db",
 	}
 
