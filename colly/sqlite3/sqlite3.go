@@ -11,6 +11,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
+	"strings"
 )
 
 // Storage implements a SQLite3 storage backend for Colly
@@ -168,6 +169,7 @@ func (s *Storage) Cookies(u *url.URL) string {
 	statement, err := s.dbh.Prepare("SELECT cookies FROM cookies where host = ?")
 	if err != nil {
 		log.Printf("Cookies() .Get error %s", err)
+		return ""
 	}
 	row := statement.QueryRow(u.Host)
 
@@ -176,7 +178,10 @@ func (s *Storage) Cookies(u *url.URL) string {
 	s.mu.RUnlock()
 
 	if err != nil {
-		cookies = ""
+		if strings.Contains(err.Error(), "no rows") {
+			return ""
+		}
+
 		log.Printf("Cookies() .Get error %s", err)
 	}
 
@@ -234,6 +239,5 @@ func (s *Storage) QueueSize() (int, error) {
 	if err != nil {
 		return 0, err
 	}
-		return count, nil
-
-	}
+	return count, nil
+}
