@@ -112,7 +112,9 @@ func (s *Storage) Visited(requestID uint64) error {
 	if err != nil {
 		return err
 	}
-	_, err = statement.Exec(requestID)
+    // [golang/go/issues/6113] we can't use uint64 with the high bit set 
+    // but we can cast it and store as an int64 without data loss
+	_, err = statement.Exec(int64(requestID))
 	if err != nil {
 		return err
 	}
@@ -126,7 +128,9 @@ func (s *Storage) IsVisited(requestID uint64) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	row := statement.QueryRow(requestID)
+    // [golang/go/issues/6113] we can't use uint64 with the high bit set 
+    // but we can cast it and store as an int64 without data loss
+	row := statement.QueryRow(int64(requestID))
 	err = row.Scan(&count)
 	if err != nil {
 		return false, err
